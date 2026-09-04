@@ -1,0 +1,40 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: bap_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: bap_db
+      MYSQL_USER: bap_user
+      MYSQL_PASSWORD: bap_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - bap-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  backend:
+    build: .
+    container_name: bap-backend
+    env_file:
+      - .env
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - bap-net
+
+volumes:
+  mysql_data:
+
+networks:
+  bap-net:
+    driver: bridge

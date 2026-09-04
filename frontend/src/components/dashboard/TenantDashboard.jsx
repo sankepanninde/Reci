@@ -1,235 +1,316 @@
 import React, { useState, useEffect } from 'react';
-import { LogOut, Zap, FileText, CheckCircle2, AlertCircle, Clock, Home, ChevronDown, ChevronUp, Download } from 'lucide-react';
+import { useDashboard } from '../../context/DashboardContext';
+import api from '../../utils/api';
+import { formatCOP } from '../../utils/dashboardUtils';
+import { Bell, LogOut, CheckCircle2, AlertCircle, Clock, X, Plus, FileText, Wrench } from 'lucide-react';
 
-export const TenantDashboard = ({ user, onLogout }) => {
+export default function TenantDashboard({ user, onLogout }) {
+  const { activeTab } = useDashboard();
+  const [tenant, setTenant] = useState(null);
   const [bills, setBills] = useState([]);
-  const [expandedBill, setExpandedBill] = useState(null);
+  const [maintenanceTickets, setMaintenanceTickets] = useState([]);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedBill, setSelectedBill] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState('transferencia');
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [paymentReference, setPaymentReference] = useState('');
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentNotes, setPaymentNotes] = useState('');
+  const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
+  const [maintenanceDescription, setMaintenanceDescription] = useState('');
+  const [maintenanceCategory, setMaintenanceCategory] = useState('plomeria');
+  const [maintenancePriority, setMaintenancePriority] = useState('media');
+
+  // Estados para cambio de contraseña
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   useEffect(() => {
-    const saved = localStorage.getItem('bap_bills');
-    if (saved) {
-      const all = JSON.parse(saved);
-      // Filtrar solo los recibos de esta unidad
-      const mine = all.filter(b =>
-        b.propertyId === user?.unit ||
-        b.unit === user?.unit ||
-        b.tenant === user?.name
-      );
-      setBills(mine.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
-    }
-  }, [user]);
+    loadTenantData();
+  }, []);
 
-  const formatCOP = (val) => {
-    if (!val && val !== 0) return '$0';
-    return '$' + Number(val).toLocaleString('es-CO');
+  const loadTenantData = async () => {
+    try {
+      const meRes = await api.get('/me');
+      setTenant(meRes.data);
+
+      if (meRes.data.mustChangePassword) {
+        setShowChangePassword(true);
+      }
+
+      const billsRes = await api.get('/bills/tenant');
+      setBills(billsRes.data);
+
+      const maintRes = await api.get('/maintenance/tenant');
+      setMaintenanceTickets(maintRes.data);
+    } catch (error) {
+      console.error('Error cargando datos del arrendatario', error);
+    }
   };
 
-  const latestBill = bills[0];
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setPasswordError('');
+    if (newPassword.length < 6) {
+      setPasswordError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Las contraseñas no coinciden.');
+      return;
+    }
+    try {
+      await api.put('/auth/change-password', { newPassword });
+      setShowChangePassword(false);
+      setNewPassword('');
+      setConfirmPassword('');
+      loadTenantData();
+    } catch (error) {
+      setPasswordError('Error al cambiar contraseña');
+    }
+  };
 
-  const statusConfig = (status) => {
+  const handleReportPayment = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        status: 'Pendiente',
+        paymentProof: {
+          method: paymentMethod,
+          date: paymentDate,
+          reference: paymentReference,
+          amount: parseFloat(paymentAmount),
+          notes: paymentNotes,
+        },
+      };
+      await api.put(`/bills/${selectedBill.id}`, payload);
+      setShowPaymentModal(false);
+      loadTenantData();
+    } catch (error) {
+      console.error('Error reportando pago', error);
+    }
+  };
+
+  const handleCreateMaintenance = async (e) => {
+    e.preventDefault();
+    try {
+      const property = tenant?.properties?.[0];
+      if (!property) return;
+      await api.post('/maintenance', {
+        description: maintenanceDescription,
+        category: maintenanceCategory,
+        priority: maintenancePriority,
+        propertyId: property.id,
+      });
+      setShowMaintenanceModal(false);
+      loadTenantData();
+    } catch (error) {
+      console.error('Error creando mantenimiento', error);
+    }
+  };
+
+  const getStatusColor = (status) => {
     switch (status) {
-      case 'Pagado': return { icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', label: 'Pagado' };
-      case 'Atrasado': return { icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-200', label: 'Vencido' };
-      default: return { icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200', label: 'Pendiente de pago' };
+      case 'Pagado': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case 'Atrasado': return 'bg-rose-100 text-rose-700 border-rose-200';
+      default: return 'bg-amber-100 text-amber-700 border-amber-200';
     }
   };
 
-  const today = new Date().toISOString().split('T')[0];
-  const isOverdue = (dueDate) => dueDate && dueDate < today;
+  if (!tenant) {
+    return <div className="min-h-screen bg-background text-on-surface flex items-center justify-center">Cargando...</div>;
+  }
+
+  const property = tenant.properties?.[0];
+  const tenantName = tenant.name || 'Arrendatario';
+  const unitName = property?.name || 'Sin unidad';
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      {/* Header */}
-      <nav className="bg-white border-b border-slate-200 px-6 py-3.5 flex justify-between items-center sticky top-0 z-20">
-        <div className="flex items-center gap-3">
-          <div className="bg-slate-950 text-white p-2 rounded-lg">
-            <Zap size={18} />
-          </div>
-          <div>
-            <h1 className="font-bold text-sm leading-tight">Mi Recibo de Luz</h1>
-            <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Portal Arrendatario</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="hidden sm:inline text-xs text-slate-500 font-medium">{user?.name}</span>
-          <button onClick={onLogout} className="flex items-center gap-1.5 text-slate-500 hover:text-rose-600 transition-colors text-xs font-bold uppercase tracking-wider px-3 py-2 rounded-lg hover:bg-slate-100">
-            <LogOut size={15} /> Salir
-          </button>
-        </div>
-      </nav>
-
-      <main className="p-4 md:p-8 max-w-3xl mx-auto w-full space-y-6">
-        {/* Bienvenida */}
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">Hola, {user?.name || 'Arrendatario'}</h2>
-          <p className="text-slate-500 text-sm mt-1">Aquí puedes consultar tus recibos de energía y aseo.</p>
+    <div className="min-h-screen bg-background text-on-surface">
+      <main className="p-4 max-w-5xl mx-auto space-y-6">
+        <div className="glass-panel p-6 rounded-xl">
+          <h2 className="text-2xl font-bold">Hola, {tenantName}</h2>
+          <p className="text-on-surface-variant">Unidad: {unitName}</p>
         </div>
 
-        {/* Recibo Actual */}
-        {latestBill ? (
-          <div className={`bg-white rounded-xl border shadow-sm overflow-hidden ${
-            latestBill.status === 'Pagado' ? 'border-emerald-200' :
-            isOverdue(latestBill.dueDate) ? 'border-rose-200' : 'border-amber-200'
-          }`}>
-            <div className={`px-6 py-4 border-b flex items-center justify-between ${
-              latestBill.status === 'Pagado' ? 'bg-emerald-50/50 border-emerald-100' :
-              isOverdue(latestBill.dueDate) ? 'bg-rose-50/50 border-rose-100' : 'bg-amber-50/50 border-amber-100'
-            }`}>
-              <div className="flex items-center gap-2">
-                <FileText size={18} className={latestBill.status === 'Pagado' ? 'text-emerald-600' : isOverdue(latestBill.dueDate) ? 'text-rose-600' : 'text-amber-600'} />
-                <div>
-                  <h3 className="font-bold text-sm text-slate-900">Recibo Actual</h3>
-                  <p className="text-[11px] text-slate-500">Período: {latestBill.periodStart} al {latestBill.periodEnd}</p>
-                </div>
-              </div>
-              {(() => {
-                const cfg = statusConfig(latestBill.status);
-                const Icon = cfg.icon;
-                return (
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border ${cfg.bg} ${cfg.color} ${cfg.border}`}>
-                    <Icon size={13} /> {cfg.label}
-                  </span>
-                );
-              })()}
+        {activeTab === 'overview' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="glass-panel p-5 rounded-xl">
+              <p className="text-sm text-on-surface-variant">Recibos totales</p>
+              <p className="text-2xl font-bold">{bills.length}</p>
             </div>
-
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Lectura Anterior</span>
-                  <span className="font-mono font-bold text-slate-900 text-lg">{latestBill.prevReading} <span className="text-xs font-normal text-slate-400">kWh</span></span>
-                </div>
-                <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Lectura Actual</span>
-                  <span className="font-mono font-bold text-slate-900 text-lg">{latestBill.currReading} <span className="text-xs font-normal text-slate-400">kWh</span></span>
-                </div>
-              </div>
-
-              <div className="bg-indigo-50/50 rounded-lg p-4 border border-indigo-100">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] uppercase font-bold text-indigo-500">Consumo Calculado</span>
-                  <span className="font-mono font-extrabold text-indigo-700 text-xl">{latestBill.consumption} kWh</span>
-                </div>
-                <div className="w-full bg-indigo-100 rounded-full h-1.5">
-                  <div className="bg-indigo-500 h-1.5 rounded-full transition-all" style={{ width: `${Math.min(100, (latestBill.consumption / 500) * 100)}%` }} />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm py-1.5 border-b border-slate-50">
-                  <span className="text-slate-500">Tarifa kWh</span>
-                  <span className="font-mono text-slate-700">{formatCOP(latestBill.kwhRate)}</span>
-                </div>
-                <div className="flex justify-between text-sm py-1.5 border-b border-slate-50">
-                  <span className="text-slate-500">Valor Energía</span>
-                  <span className="font-mono font-bold text-slate-900">{formatCOP(latestBill.energyTotal)}</span>
-                </div>
-                <div className="flex justify-between text-sm py-1.5 border-b border-slate-50">
-                  <span className="text-slate-500">Aseo / Otros</span>
-                  <span className="font-mono text-slate-700">{formatCOP(latestBill.trashCost)}</span>
-                </div>
-                <div className="flex justify-between items-center pt-2">
-                  <span className="text-sm font-bold text-slate-900">Total a Pagar</span>
-                  <span className="font-mono font-extrabold text-slate-900 text-2xl">{formatCOP(latestBill.total)}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                <div className="flex items-center gap-2">
-                  <CalendarIcon />
-                  <span className="text-xs text-slate-500">Fecha límite: <span className="font-mono font-bold text-slate-700">{latestBill.dueDate}</span></span>
-                </div>
-                {latestBill.status !== 'Pagado' && (
-                  <span className={`text-[10px] font-bold px-2 py-1 rounded-md ${
-                    isOverdue(latestBill.dueDate) ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
-                  }`}>
-                    {isOverdue(latestBill.dueDate) ? 'Vencido' : 'En plazo'}
-                  </span>
-                )}
-              </div>
+            <div className="glass-panel p-5 rounded-xl">
+              <p className="text-sm text-on-surface-variant">Pendientes</p>
+              <p className="text-2xl font-bold">{bills.filter(b => b.status !== 'Pagado').length}</p>
             </div>
-          </div>
-        ) : (
-          <div className="bg-white rounded-xl border border-slate-200 p-12 text-center shadow-sm">
-            <Zap size={32} className="text-slate-300 mx-auto mb-3" />
-            <p className="text-sm text-slate-500 font-medium">Aún no tienes recibos generados.</p>
-            <p className="text-xs text-slate-400 mt-1">El administrador debe generar tu primer recibo desde el panel.</p>
+            <div className="glass-panel p-5 rounded-xl">
+              <p className="text-sm text-on-surface-variant">Último recibo</p>
+              <p className="text-2xl font-bold">{formatCOP(bills[0]?.total || 0)}</p>
+            </div>
           </div>
         )}
 
-        {/* Historial */}
-        <div>
-          <h3 className="font-bold text-sm text-slate-900 mb-3 flex items-center gap-2">
-            <FileText size={16} className="text-slate-400" /> Historial de Recibos
-          </h3>
-
-          {bills.length <= 1 ? (
-            <p className="text-xs text-slate-400">No hay recibos anteriores para mostrar.</p>
-          ) : (
-            <div className="space-y-2">
-              {bills.slice(1).map((bill) => {
-                const cfg = statusConfig(bill.status);
-                const Icon = cfg.icon;
-                const isOpen = expandedBill === bill.id;
-                return (
-                  <div key={bill.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <button
-                      onClick={() => setExpandedBill(isOpen ? null : bill.id)}
-                      className="w-full px-5 py-3.5 flex items-center justify-between hover:bg-slate-50/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold border ${cfg.bg} ${cfg.color} ${cfg.border}`}>
-                          <Icon size={11} /> {cfg.label}
-                        </span>
-                        <span className="text-sm font-bold text-slate-900">{bill.periodStart} → {bill.periodEnd}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono font-bold text-slate-900 text-sm">{formatCOP(bill.total)}</span>
-                        {isOpen ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
-                      </div>
-                    </button>
-
-                    {isOpen && (
-                      <div className="px-5 pb-4 pt-1 border-t border-slate-100 space-y-2">
-                        <div className="grid grid-cols-2 gap-3 text-xs">
-                          <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-100">
-                            <span className="text-slate-400 block mb-0.5">Consumo</span>
-                            <span className="font-mono font-bold text-slate-900">{bill.consumption} kWh</span>
-                          </div>
-                          <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-100">
-                            <span className="text-slate-400 block mb-0.5">Tarifa</span>
-                            <span className="font-mono font-bold text-slate-900">{formatCOP(bill.kwhRate)}</span>
-                          </div>
-                        </div>
-                        <div className="flex justify-between text-xs py-1">
-                          <span className="text-slate-500">Energía:</span>
-                          <span className="font-mono text-slate-700">{formatCOP(bill.energyTotal)}</span>
-                        </div>
-                        <div className="flex justify-between text-xs py-1">
-                          <span className="text-slate-500">Aseo:</span>
-                          <span className="font-mono text-slate-700">{formatCOP(bill.trashCost)}</span>
-                        </div>
-                        <div className="flex justify-between text-xs py-1 border-t border-slate-100 pt-2">
-                          <span className="text-slate-500">Límite de pago:</span>
-                          <span className="font-mono text-slate-700">{bill.dueDate}</span>
-                        </div>
-                      </div>
-                    )}
+        {activeTab === 'bills' && (
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Mis Recibos</h3>
+            {bills.length === 0 ? (
+              <div className="glass-panel p-8 text-center text-on-surface-variant">No tienes recibos registrados.</div>
+            ) : (
+              bills.map(bill => (
+                <div key={bill.id} className="glass-panel p-4 rounded-xl flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{bill.periodStart} a {bill.periodEnd}</p>
+                    <p className="text-sm text-on-surface-variant">Consumo: {bill.consumption} kWh</p>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
-  );
-};
+                  <div className="text-right">
+                    <p className="font-bold">{formatCOP(bill.total)}</p>
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(bill.status)}`}>
+                      {bill.status}
+                    </span>
+                  </div>
+                  {bill.status !== 'Pagado' && (
+                    <button
+                      onClick={() => { setSelectedBill(bill); setShowPaymentModal(true); }}
+                      className="px-3 py-1 bg-vibrant-cyan text-background rounded-lg text-sm"
+                    >
+                      Reportar pago
+                    </button>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        )}
 
-function CalendarIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
+        {activeTab === 'maintenance' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-xl font-semibold">Mantenimiento</h3>
+              <button onClick={() => setShowMaintenanceModal(true)} className="px-4 py-2 bg-vibrant-cyan text-background rounded-lg">
+                Nuevo reporte
+              </button>
+            </div>
+            {maintenanceTickets.length === 0 ? (
+              <div className="glass-panel p-8 text-center text-on-surface-variant">No tienes reportes de mantenimiento.</div>
+            ) : (
+              maintenanceTickets.map(ticket => (
+                <div key={ticket.id} className="glass-panel p-4 rounded-xl">
+                  <div className="flex justify-between">
+                    <p className="font-medium">{ticket.description}</p>
+                    <span className={`text-xs px-2 py-1 rounded-full border ${
+                      ticket.status === 'open' ? 'bg-amber-100 text-amber-700 border-amber-200' :
+                      ticket.status === 'in-progress' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                      'bg-emerald-100 text-emerald-700 border-emerald-200'
+                    }`}>
+                      {ticket.status}
+                    </span>
+                  </div>
+                  {ticket.adminNotes && <p className="mt-2 text-sm text-indigo-600">{ticket.adminNotes}</p>}
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {activeTab === 'profile' && (
+          <div className="glass-panel p-6 rounded-xl">
+            <h3 className="text-xl font-semibold mb-4">Mi Perfil</h3>
+            <div className="space-y-2">
+              <p><strong>Nombre:</strong> {tenantName}</p>
+              <p><strong>Email:</strong> {tenant.email}</p>
+              <p><strong>Unidad:</strong> {unitName}</p>
+              <p><strong>Teléfono:</strong> {tenant.phone || 'No registrado'}</p>
+            </div>
+            <button onClick={() => setShowChangePassword(true)} className="mt-4 px-4 py-2 bg-vibrant-cyan text-background rounded-lg">
+              Cambiar contraseña
+            </button>
+          </div>
+        )}
+      </main>
+
+      {/* Modal Reportar Pago */}
+      {showPaymentModal && selectedBill && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-background border border-glass-stroke rounded-xl p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4">Reportar Pago</h3>
+            <p className="text-sm mb-4">Recibo: {selectedBill.periodStart} a {selectedBill.periodEnd} - {formatCOP(selectedBill.total)}</p>
+            <form onSubmit={handleReportPayment} className="space-y-3">
+              <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} className="w-full p-2 bg-midnight-slate border border-glass-stroke rounded">
+                <option value="transferencia">Transferencia</option>
+                <option value="efectivo">Efectivo</option>
+                <option value="otro">Otro</option>
+              </select>
+              <input type="date" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} className="w-full p-2 bg-midnight-slate border border-glass-stroke rounded" required />
+              <input type="text" placeholder="Referencia" value={paymentReference} onChange={e => setPaymentReference(e.target.value)} className="w-full p-2 bg-midnight-slate border border-glass-stroke rounded" />
+              <input type="number" placeholder="Monto pagado" value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} className="w-full p-2 bg-midnight-slate border border-glass-stroke rounded" required />
+              <textarea placeholder="Notas (opcional)" value={paymentNotes} onChange={e => setPaymentNotes(e.target.value)} className="w-full p-2 bg-midnight-slate border border-glass-stroke rounded" />
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setShowPaymentModal(false)} className="flex-1 py-2 bg-glass-fill rounded">Cancelar</button>
+                <button type="submit" className="flex-1 py-2 bg-vibrant-cyan text-background rounded">Enviar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Mantenimiento */}
+      {showMaintenanceModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-background border border-glass-stroke rounded-xl p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4">Nuevo Reporte de Mantenimiento</h3>
+            <form onSubmit={handleCreateMaintenance} className="space-y-3">
+              <textarea placeholder="Describe el problema" value={maintenanceDescription} onChange={e => setMaintenanceDescription(e.target.value)} className="w-full p-2 bg-midnight-slate border border-glass-stroke rounded" required />
+              <select value={maintenanceCategory} onChange={e => setMaintenanceCategory(e.target.value)} className="w-full p-2 bg-midnight-slate border border-glass-stroke rounded">
+                <option value="plomeria">Plomería</option>
+                <option value="electrico">Eléctrico</option>
+                <option value="carpinteria">Carpintería</option>
+                <option value="otro">Otro</option>
+              </select>
+              <select value={maintenancePriority} onChange={e => setMaintenancePriority(e.target.value)} className="w-full p-2 bg-midnight-slate border border-glass-stroke rounded">
+                <option value="baja">Baja</option>
+                <option value="media">Media</option>
+                <option value="alta">Alta</option>
+              </select>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setShowMaintenanceModal(false)} className="flex-1 py-2 bg-glass-fill rounded">Cancelar</button>
+                <button type="submit" className="flex-1 py-2 bg-vibrant-cyan text-background rounded">Enviar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Cambiar Contraseña */}
+      {showChangePassword && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-background border border-glass-stroke rounded-xl p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4">Cambiar Contraseña</h3>
+            <p className="text-sm text-on-surface-variant mb-4">Por seguridad, debes cambiar tu contraseña provisional.</p>
+            <form onSubmit={handleChangePassword} className="space-y-3">
+              <input
+                type="password"
+                placeholder="Nueva contraseña"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                className="w-full p-2 bg-midnight-slate border border-glass-stroke rounded"
+                required
+              />
+              <input
+                type="password"
+                placeholder="Confirmar contraseña"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                className="w-full p-2 bg-midnight-slate border border-glass-stroke rounded"
+                required
+              />
+              {passwordError && <p className="text-error text-sm">{passwordError}</p>}
+              <button type="submit" className="w-full py-2 bg-vibrant-cyan text-background rounded">Guardar</button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

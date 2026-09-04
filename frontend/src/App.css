@@ -2,9 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Animaciones */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
 }
 
 .animate-fadeIn {
@@ -32,3 +45,45 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   opacity: 0.5;
   cursor: pointer;
 }
+
+/* Material Symbols */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Glassmorphism base */
+.glass-card {
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255,255,255,0.9);
+  border-left: 1px solid rgba(255,255,255,0.9);
+  border-bottom: 1px solid rgba(255,255,255,0.4);
+  border-right: 1px solid rgba(255,255,255,0.4);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+  transition: all .3s ease;
+}
+.glass-card:hover {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 20px 40px rgba(0,88,190,0.08);
+  transform: translateY(-2px);
+}
+
+/* Inputs focus */
+input, textarea {
+  background-color: rgba(255,255,255,0.5);
+  border: 1px solid rgba(0,0,0,0.1);
+  color: #191c1e;
+}
+input:focus, textarea:focus {
+  border-color: #0058be;
+  box-shadow: 0 0 0 1px #0058be;
+  outline: none;
+}
+input::placeholder, textarea::placeholder { color: #727784; }

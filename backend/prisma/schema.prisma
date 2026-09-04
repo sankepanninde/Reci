@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("tenant")
+  document  String?
+  phone     String?
+  mustChangePassword  Boolean  @default(false) 
+  properties Property[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Property {
+  id           String   @id @default(uuid())
+  name         String
+  type         String   @default("comercial")
+  tenantName   String?
+  document     String?
+  email        String?
+  phone        String?
+  password     String?
+  meters       String   @default("1 Normal")
+  status       String   @default("Pendiente")
+  baseAmount   Float    @default(0)
+  dueDate      DateTime?
+  prevReading  Float?
+  currReading  Float?
+  m1Prev       Float?
+  m1Curr       Float?
+  m2Prev       Float?
+  m2Curr       Float?
+  m3Prev       Float?
+  m3Curr       Float?
+  ownerId      String?
+  owner        User?    @relation(fields: [ownerId], references: [id])
+  bills        Bill[]
+  maintenance  MaintenanceTicket[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Bill {
+  id          String   @id @default(uuid())
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id])
+  periodStart DateTime
+  periodEnd   DateTime
+  dueDate     DateTime
+  consumption Float
+  kwhRate     Float
+  energyTotal Float
+  trashCost   Float
+  total       Float
+  status      String   @default("Pendiente")
+  paymentProof String?
+  paidDate    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model MaintenanceTicket {
+  id          String   @id @default(uuid())
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id])
+  description String
+  category    String
+  priority    String   @default("media")
+  status      String   @default("open")
+  adminNotes  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
