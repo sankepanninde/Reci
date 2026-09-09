@@ -1,11 +1,15 @@
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true, // SSL directo, recomendado en Railway
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD,
   },
+  // Opcional: si hay problemas de certificados, descomenta esta línea temporalmente
+  // tls: { rejectUnauthorized: false },
 });
 
 async function sendEmail(toEmail, subject, htmlContent) {
