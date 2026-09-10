@@ -18,6 +18,7 @@ export const adminTabs = [
 export const tenantTabs = [
   { key: 'overview', label: 'Resumen', icon: LayoutDashboard },
   { key: 'bills', label: 'Mis Recibos', icon: Receipt },
+  { key: 'payments', label: 'Pagos', icon: CreditCard },
   { key: 'maintenance', label: 'Mantenimiento', icon: Wrench },
   { key: 'profile', label: 'Mi Perfil', icon: UserIcon },
 ];

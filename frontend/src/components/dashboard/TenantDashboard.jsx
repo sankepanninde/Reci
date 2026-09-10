@@ -3,6 +3,7 @@ import { useDashboard } from '../../context/DashboardContext';
 import api from '../../utils/api';
 import { formatCOP } from '../../utils/dashboardUtils';
 import { Bell, LogOut, CheckCircle2, AlertCircle, Clock, X, Plus, FileText, Wrench } from 'lucide-react';
+import PaymentReportTab from './PaymentReportTab';
 
 export default function TenantDashboard({ user, onLogout }) {
   const { activeTab } = useDashboard();
@@ -182,6 +183,9 @@ export default function TenantDashboard({ user, onLogout }) {
               ))
             )}
           </div>
+        )}
+        {activeTab === 'payments' && (
+          <PaymentReportTab bills={bills} loadTenantData={loadTenantData} />
         )}
 
         {activeTab === 'maintenance' && (

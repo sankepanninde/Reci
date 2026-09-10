@@ -1,27 +1,15 @@
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true, // SSL directo, recomendado en Railway
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-  // Opcional: si hay problemas de certificados, descomenta esta línea temporalmente
-  // tls: { rejectUnauthorized: false },
-});
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function sendEmail(toEmail, subject, htmlContent) {
   try {
-    const info = await transporter.sendMail({
-      from: `"Bap Inmobiliaria" <${process.env.GMAIL_USER}>`,
+    const data = await resend.emails.send({
+      from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
       to: toEmail,
       subject,
-      text: htmlContent.replace(/<[^>]*>/g, ''),
       html: htmlContent,
     });
-    return { success: true, messageId: info.messageId };
+    return { success: true, messageId: data.id };
   } catch (error) {
     console.error('Error enviando Email:', error);
     return { success: false, error: error.message };

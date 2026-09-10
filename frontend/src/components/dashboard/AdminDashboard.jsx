@@ -194,6 +194,17 @@ function AdminDashboard({ user, onLogout }) {
     }
   };
 
+  const handleDeleteProperty = async (id) => {
+  if (!confirm('¿Eliminar esta unidad? Esta acción no se puede deshacer.')) return;
+  try {
+    await api.delete(`/properties/${id}`);
+    addToast('Unidad eliminada', 'success');
+    loadProperties();
+  } catch (error) {
+    addToast('Error al eliminar unidad', 'error');
+  }
+};
+
   const exportBillsCSV = () => {
     if (!bills.length) return;
     const headers = ['Unidad','Arrendatario','Periodo','Consumo','Tarifa','Energia','Aseo','Total','Estado','Limite'];
@@ -254,11 +265,12 @@ function AdminDashboard({ user, onLogout }) {
   };
 
   const handleSendNotifications = async () => {
-    // 1. Guardar lecturas actuales en BD
+  try {
+    // Guardar lecturas
     for (const p of properties) {
       await api.put(`/properties/${p.id}`, {
-        prevReading: p.prev,
-        currReading: p.curr,
+        prev: p.prev,
+        curr: p.curr,
         m1Prev: p.m1Prev,
         m1Curr: p.m1Curr,
         m2Prev: p.m2Prev,
@@ -268,7 +280,7 @@ function AdminDashboard({ user, onLogout }) {
       });
     }
 
-    // 2. Construir recibos con los datos guardados
+    // Crear recibos
     const newBills = properties.map(p => {
       const consumption = getPropertyConsumption(p);
       const energyTotal = consumption * kwhRate;
@@ -287,44 +299,20 @@ function AdminDashboard({ user, onLogout }) {
       };
     });
 
-  const emailTemplate = localStorage.getItem('bap_email_template') || '';
-  const whatsappTemplate = localStorage.getItem('bap_whatsapp_template') || '';
+    const emailTemplate = localStorage.getItem('bap_email_template') || '';
+    const whatsappTemplate = localStorage.getItem('bap_whatsapp_template') || '';
 
-  await api.post('/bills/generate', {
-    bills: newBills,
-    emailTemplate,
-    whatsappTemplate,
-  });
+    await api.post('/bills/generate', {
+      bills: newBills,
+      emailTemplate,
+      whatsappTemplate,
+    });
 
-    setShowNotifyModal(true);
-    setNotifyStep(0);
-    setNotifyProgress([{ step: 0, status: 'loading', text: 'Generando recibos...' }]);
-    await new Promise(r => setTimeout(r, 800));
-    setNotifyStep(1);
-    setNotifyProgress([
-      { step: 0, status: 'done', text: `Recibos generados (${newBills.length})` },
-      { step: 1, status: 'loading', text: 'Enviando notificaciones...' }
-    ]);
-    await new Promise(r => setTimeout(r, 1200));
-    setNotifyStep(2);
-    setNotifyProgress([
-      { step: 0, status: 'done', text: `Recibos generados (${newBills.length})` },
-      { step: 1, status: 'done', text: 'Notificaciones enviadas' }
-    ]);
-    await new Promise(r => setTimeout(r, 2000));
-    setShowNotifyModal(false);
-    setNotifyStep(0);
-    setNotifyProgress([]);
-  };
-
-  const handleDeleteProperty = async (id) => {
-  if (!confirm('¿Eliminar esta unidad? Esta acción no se puede deshacer.')) return;
-  try {
-    await api.delete(`/properties/${id}`);
-    addToast('Unidad eliminada', 'success');
-    loadProperties();
+    addToast('Recibos guardados y notificaciones enviadas', 'success');
+    loadBills();
   } catch (error) {
-    addToast('Error al eliminar unidad', 'error');
+    console.error('Error en handleSendNotifications:', error);
+    addToast('Error al guardar liquidación', 'error');
   }
 };
 
