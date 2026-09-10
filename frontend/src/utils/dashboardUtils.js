@@ -3,7 +3,8 @@ export const DEFAULT_PROPERTIES = [
   { id: 'Local 1', unit: 'Local 1', tenant: 'Comercio Alpha', email: 'local1@mail.com', document: '101010', password: 'Temp123!', meters: '1 Normal', status: 'Pendiente', baseAmount: 1500000, dueDate: '2026-08-30', prev: 1000, curr: 1120 },
   { id: 'Local 2', unit: 'Local 2', tenant: 'Comercio Beta', email: 'local2@mail.com', document: '202020', password: 'Temp123!', meters: '2 Normales, 1 Trifásico', status: 'Pendiente', baseAmount: 2800000, dueDate: '2026-08-30', m1Prev: 500, m1Curr: 590, m2Prev: 300, m2Curr: 410, m3Prev: 1000, m3Curr: 1250 },
   { id: 'Local 3', unit: 'Local 3', tenant: 'Comercio Gamma', email: 'local3@mail.com', document: '303030', password: 'Temp123!', meters: '1 Normal', status: 'Pagado', baseAmount: 1200000, dueDate: '2026-08-30', prev: 800, curr: 910 },
-{ id: 'Garaje', unit: 'Garaje', tenant: 'Uso Interno / Sin Arrendatario', email: '', document: '', password: '', meters: '1 Normal', status: 'Pagado', baseAmount: 0, dueDate: '2026-08-30', prev: 100, curr: 150 },  { id: 'Apartamento', unit: 'Apartamento', tenant: 'Juan Pérez', email: 'apartamento@mail.com', document: '505050', password: 'Temp123!', meters: '1 Normal', status: 'Pagado', baseAmount: 1200000, dueDate: '2026-08-30', prev: 2200, curr: 2350 },
+  { id: 'Garaje', unit: 'Garaje', tenant: 'Uso Interno / Sin Arrendatario', email: '', document: '', password: '', meters: '1 Normal', status: 'Pagado', baseAmount: 0, dueDate: '2026-08-30', prev: 100, curr: 150 },
+  { id: 'Apartamento', unit: 'Apartamento', tenant: 'Juan Pérez', email: 'apartamento@mail.com', document: '505050', password: 'Temp123!', meters: '1 Normal', status: 'Pagado', baseAmount: 1200000, dueDate: '2026-08-30', prev: 2200, curr: 2350 },
   { id: 'Salón', unit: 'Salón', tenant: 'Uso Común', email: 'salon@mail.com', document: '606060', password: 'Temp123!', meters: '1 Normal', status: 'Pagado', baseAmount: 500000, dueDate: '2026-08-30', prev: 400, curr: 450 },
 ];
 
@@ -40,6 +41,13 @@ export const formatCOP = (val) => {
   if (!val && val !== 0) return '$0';
   const n = typeof val === 'string' ? Number(val.replace(/\D/g, '')) : val;
   return '$' + n.toLocaleString('es-CO');
+};
+
+export const formatDate = (dateStr) => {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
 export const getPropertyConsumption = (prop) => {

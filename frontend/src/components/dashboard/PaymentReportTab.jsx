@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../../utils/api';
-import { formatCOP, formatDate } from '../../../utils/dashboardUtils';
+import api from "../../utils/api";
+import { formatCOP, formatDate } from "../../utils/dashboardUtils";
 
 export default function PaymentReportTab({ bills, loadTenantData }) {
   const [selectedBill, setSelectedBill] = useState(null);
