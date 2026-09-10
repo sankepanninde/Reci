@@ -2,24 +2,25 @@ FROM node:22-bookworm-slim
 
 WORKDIR /app
 
-# Instalar OpenSSL (Prisma lo necesita para cargar sus engines)
+# OpenSSL para Prisma
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
-# Activar Corepack (viene con Node 20) para usar pnpm
+# Corepack para pnpm
 RUN corepack enable
 
-# Copiar archivos necesarios para instalar dependencias
+# Copiar archivos de dependencias
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-
-# Instalar con pnpm (frozen = falla si el lockfile no coincide)
 RUN pnpm install --frozen-lockfile
 
 # Copiar el resto del código
 COPY . .
 
-# Generar el cliente de Prisma
+# Generar Prisma Client
 RUN pnpm exec prisma generate
+
+# Dar permisos al entrypoint
+RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 4000
 
-CMD ["sh", "-c", "pnpm exec prisma migrate deploy && node src/seedUser.js && node src/index.js"]
+CMD ["/app/entrypoint.sh"]
