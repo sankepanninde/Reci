@@ -382,123 +382,637 @@ function AdminDashboard({ user, onLogout }) {
 
   return (
     <>
-      {/* ===================== OVERVIEW ===================== */}
+      {/* ============ OVERVIEW — DISEÑO VOLT v2 ============ */}
       {activeTab === 'overview' && (
-        <div className="space-y-5 animate-fadeIn">
-          <SectionHeader
-            title="Visión General"
-            subtitle="Métricas de rendimiento y estado del portafolio."
-            action={
-              <div className="flex gap-2">
-                <button className="px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-on-surface text-body-sm hover:border-vibrant-cyan hover:text-vibrant-cyan transition-all">
-                  Exportar PDF
-                </button>
-                <button className="px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-on-surface text-body-sm hover:border-vibrant-cyan hover:text-vibrant-cyan transition-all flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[16px]">calendar_today</span>
-                  Este Mes
-                </button>
-              </div>
-            }
-          />
+        <div className="animate-fadeIn space-y-5">
 
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <KpiCard
-              icon="payments"
-              label="Total Recaudado"
-              value={formatCOP(collectedAmount)}
-              accent="cyan"
-              trend={{ positive: true, value: '+12%' }}
-            />
-            <KpiCard
-              icon="groups"
-              label="Inquilinos Activos"
-              value={properties.length}
-              accent="blue"
-            />
-            <KpiCard
-              icon="real_estate_agent"
-              label="Propiedades Disp."
-              value={properties.filter(p => p.status === 'Pendiente').length}
-              accent="success"
-            />
-            <KpiCard
-              icon="warning"
-              label="Alertas de Pago"
-              value={`${properties.filter(p => p.status === 'Atrasado').length} atrasados`}
-              accent="error"
-            />
+          {/* Page Header */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <h1 className="text-[32px] leading-10 font-semibold text-volt-primary tracking-tight">
+                Consumo & Distribución Eléctrica
+              </h1>
+              <p className="text-[14px] leading-[22px] text-volt-ink-mute mt-1">
+                Liquidación por submedición y cuadre energético del ciclo mensual.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-volt-white border border-volt-rule-soft text-volt-ink text-[12px] font-semibold hover:bg-volt-surface-low transition-colors shadow-volt-subtle">
+                <span className="material-symbols-outlined text-[17px] text-volt-outline">compare_arrows</span>
+                <span>Comparar Ciclo Ant.</span>
+              </button>
+              <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-volt-white border border-volt-rule-soft text-volt-ink text-[12px] font-semibold hover:bg-volt-surface-low transition-colors shadow-volt-subtle">
+                <span className="material-symbols-outlined text-[17px] text-volt-outline">file_download</span>
+                <span>Exportar Resumen</span>
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-            <div className="lg:col-span-2 bg-surface-container-low border border-outline-variant rounded-xl p-5 flex flex-col">
-              <div className="flex justify-between items-center mb-5">
+          {/* ============ CUADRE MAESTRO ============ */}
+          <div className="bg-[#F2F8F4] border border-[#BFDFCA] rounded-2xl p-6 shadow-volt-subtle relative overflow-hidden">
+            <div className="absolute -right-10 -bottom-10 opacity-[0.04] text-volt-green pointer-events-none">
+              <span className="material-symbols-outlined text-[160px]">verified</span>
+            </div>
+
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-[#CBE5D4] relative">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-volt-green flex items-center justify-center text-volt-white shadow-volt-subtle shrink-0">
+                  <span className="material-symbols-outlined text-[24px]">balance</span>
+                </div>
                 <div>
-                  <h3 className="text-title-lg font-semibold text-on-surface">Tendencia de Consumos Energéticos</h3>
-                  <p className="text-body-sm text-on-surface-variant">Uso agregado (kWh) en todo el portafolio</p>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h2 className="text-[20px] leading-7 font-semibold text-volt-primary">Cuadre Maestro de Facturación</h2>
+                    <span className="px-2.5 py-0.5 rounded-full text-[12px] font-semibold bg-volt-green-soft text-volt-green-ink border border-volt-green/20 inline-flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[12px]">check_circle</span>
+                      100% Cuadrado (Diferencia $0.00 COP)
+                    </span>
+                  </div>
+                  <p className="text-[14px] text-volt-ink-mute mt-0.5">
+                    Factura General Enel: <strong className="text-volt-primary tabular-nums">$1,485,200 COP</strong> por <strong className="text-volt-primary tabular-nums">1,980 kWh</strong> a una tarifa base de <span className="font-semibold text-volt-primary tabular-nums">$750.10 / kWh</span>.
+                  </p>
                 </div>
-                <button className="p-2 bg-surface-container border border-outline-variant rounded-lg hover:border-vibrant-cyan transition-colors">
-                  <span className="material-symbols-outlined text-on-surface-variant text-[18px]">more_horiz</span>
-                </button>
               </div>
-              <div className="flex-1 min-h-[240px] relative w-full flex items-end">
-                <div className="absolute inset-0 flex flex-col justify-between">
-                  {[0,1,2,3,4].map(i => (
-                    <div key={i} className={`w-full h-px ${i === 4 ? 'border-t border-solid' : 'border-t border-dashed'} border-outline-variant`}></div>
-                  ))}
+
+              {/* Fórmula de conciliación */}
+              <div className="bg-volt-white border border-[#BFDFCA] rounded-xl px-4 py-2.5 flex items-center gap-3 shadow-volt-subtle shrink-0">
+                <div className="text-right">
+                  <span className="text-[11px] font-semibold text-volt-outline uppercase tracking-wider block">Fórmula de Conciliación</span>
+                  <div className="flex items-center gap-1.5 tabular-nums text-[13px] font-medium">
+                    <span className="text-volt-ink-mute">Submedidores (6):</span>
+                    <span className="font-semibold text-volt-primary">$1,360,200</span>
+                    <span className="text-volt-outline font-bold">+</span>
+                    <span className="text-volt-ink-mute">Salón & Garaje:</span>
+                    <span className="font-semibold text-volt-primary">$125,000</span>
+                  </div>
                 </div>
-                <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-                  <defs>
-                    <linearGradient id="chartGradient" x1="0%" x2="0%" y1="0%" y2="100%">
-                      <stop offset="0%" stopColor="#00e5ff" stopOpacity="0.3"></stop>
-                      <stop offset="100%" stopColor="#00e5ff" stopOpacity="0"></stop>
-                    </linearGradient>
-                  </defs>
-                  <polygon fill="url(#chartGradient)" points="0,100 0,60 20,40 40,70 60,30 80,45 100,20 100,100"></polygon>
-                  <polyline fill="none" points="0,60 20,40 40,70 60,30 80,45 100,20" stroke="#00e5ff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" style={{ filter: 'drop-shadow(0px 0px 6px rgba(0,229,255,0.5))' }}></polyline>
-                  {[[20,40],[40,70],[60,30],[80,45]].map(([cx,cy], i) => (
-                    <circle key={i} cx={cx} cy={cy} fill="#141314" r="1.5" stroke="#00e5ff" strokeWidth="1"></circle>
-                  ))}
-                  <circle cx="100" cy="20" fill="#00e5ff" r="1.5" stroke="#FFFFFF" strokeWidth="0.5"></circle>
-                </svg>
-                <div className="absolute -bottom-5 w-full flex justify-between px-2 text-label-sm text-on-surface-variant">
-                  <span>Ene</span><span>Feb</span><span>Mar</span><span>Abr</span><span>May</span><span>Jun</span>
+                <div className="h-8 w-px bg-volt-rule-soft"></div>
+                <div className="bg-volt-green/10 px-3 py-1.5 rounded-lg border border-volt-green/20">
+                  <span className="text-[10px] text-volt-green font-bold uppercase tracking-wider block">Total Asignado</span>
+                  <span className="text-[17px] font-bold text-volt-green tabular-nums">$1,485,200 COP</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-surface-container-low border border-outline-variant rounded-xl p-5 flex flex-col">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-title-lg font-semibold text-on-surface">Próximos Vencimientos</h3>
-                <a className="text-label-sm text-vibrant-cyan hover:underline" href="#">Ver Todos</a>
+            {/* Barra de asignación */}
+            <div className="pt-5 space-y-3 relative">
+              <div className="flex items-center justify-between text-[12px]">
+                <span className="font-semibold text-volt-primary flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[14px] text-volt-green">pie_chart</span>
+                  Asignación Energética del Inmueble (1,980 kWh)
+                </span>
+                <span className="text-volt-ink-mute">6 unidades medidoras y zonas de servicio</span>
               </div>
-              <div className="space-y-2 overflow-y-auto pr-1">
-                {properties.filter(p => p.dueDate).length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-                    <span className="material-symbols-outlined text-[36px] text-on-surface-variant/40 mb-2">event_available</span>
-                    <p className="text-body-sm text-on-surface-variant font-medium">Sin vencimientos próximos</p>
-                    <p className="text-label-sm text-on-surface-variant/70 mt-1">Los recibos con fecha límite aparecerán acá</p>
+              <div className="w-full h-4 rounded-full bg-volt-surface-mid overflow-hidden flex">
+                <div className="bg-[#1F4D2B] h-full" style={{ width: '35.8%' }} title="Supermercado: 35.8% (710 kWh)"></div>
+                <div className="bg-[#296B3C] h-full" style={{ width: '26.2%' }} title="Panadería: 26.2% (520 kWh)"></div>
+                <div className="bg-[#487853] h-full" style={{ width: '14.1%' }} title="Apto 201: 14.1% (280 kWh)"></div>
+                <div className="bg-[#6B9374] h-full" style={{ width: '9.6%' }} title="Boutique: 9.6% (190 kWh)"></div>
+                <div className="bg-[#8EAF96] h-full" style={{ width: '7.1%' }} title="Salón Comunal: 7.1% (140 kWh)"></div>
+                <div className="bg-[#B6CAB9] h-full" style={{ width: '7.2%' }} title="Garaje / Portón: 7.2% (140 kWh)"></div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-[12px] pt-1">
+                {[
+                  { color: '#1F4D2B', name: 'Supermercado', pct: '35.8%' },
+                  { color: '#296B3C', name: 'Panadería', pct: '26.2%' },
+                  { color: '#487853', name: 'Apto 201', pct: '14.1%' },
+                  { color: '#6B9374', name: 'Boutique', pct: '9.6%' },
+                  { color: '#8EAF96', name: 'Salón Comunal', pct: '7.1%' },
+                  { color: '#B6CAB9', name: 'Garaje / Portón', pct: '7.2%' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-1.5 px-2 py-1 rounded bg-volt-white/60 border border-black/5">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: item.color }}></span>
+                    <span className="text-volt-ink truncate">{item.name}</span>
+                    <span className="font-bold ml-auto tabular-nums text-volt-primary">{item.pct}</span>
                   </div>
-                ) : (
-                  properties.filter(p => p.dueDate).slice(0, 4).map(prop => (
-                    <div key={prop.id} className="bg-surface-container border border-outline-variant rounded-lg p-3 flex gap-3 items-center group hover:border-vibrant-cyan/30 transition-colors">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
-                        prop.status === 'Atrasado' ? 'bg-error/10 text-error' : 'bg-electric-blue/10 text-secondary'
-                      }`}>
-                        <span className="material-symbols-outlined text-[16px]">{prop.status === 'Atrasado' ? 'assignment_late' : 'receipt_long'}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-body-sm font-medium text-on-surface truncate">{prop.unit}</h4>
-                        <p className="text-label-sm text-on-surface-variant truncate">Vence {prop.dueDate} · {prop.tenant}</p>
-                      </div>
-                      <button className="text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-                      </button>
-                    </div>
-                  ))
-                )}
+                ))}
               </div>
             </div>
           </div>
+
+          {/* ============ 4 KPIs ============ */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            {/* KPI 1: Factura Matriz (neutral) */}
+            <div className="bg-volt-white border border-volt-rule-soft rounded-xl p-5 shadow-volt-subtle flex flex-col justify-between">
+              <div className="flex items-start justify-between">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-volt-outline">Factura Matriz Enel</span>
+                <div className="p-2 rounded-lg bg-volt-surface-low text-volt-primary">
+                  <span className="material-symbols-outlined text-[18px]">receipt</span>
+                </div>
+              </div>
+              <div className="my-2">
+                <span className="text-[28px] leading-[34px] font-bold text-volt-primary tabular-nums tracking-tight block">$1,485,200</span>
+                <span className="text-[12px] font-medium text-volt-ink-mute">COP Total a pagar al operador</span>
+              </div>
+              <div className="pt-2 border-t border-volt-rule-soft flex items-center justify-between text-[12px] text-volt-ink-mute">
+                <span>Recibo N° 49102</span>
+                <span className="px-2 py-0.5 rounded-full bg-volt-surface-high text-volt-primary font-medium">Octubre</span>
+              </div>
+            </div>
+
+            {/* KPI 2: Consumo Medido (azul) */}
+            <div className="bg-volt-white border-t-4 border-t-[#2B59C3] border-x border-b border-volt-rule-soft rounded-xl p-5 shadow-volt-subtle flex flex-col justify-between">
+              <div className="flex items-start justify-between">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-[#2B59C3]">Consumo Medido</span>
+                <div className="p-2 rounded-lg bg-blue-50 text-[#2B59C3]">
+                  <span className="material-symbols-outlined text-[18px]">electric_meter</span>
+                </div>
+              </div>
+              <div className="my-2">
+                <span className="text-[28px] leading-[34px] font-bold text-volt-primary tabular-nums tracking-tight block">1,980 kWh</span>
+                <span className="text-[12px] font-medium text-volt-ink-mute">Energía activa total registrada</span>
+              </div>
+              <div className="pt-2 border-t border-volt-rule-soft flex items-center justify-between text-[12px]">
+                <span className="text-volt-ink-mute">6 de 6 medidores leídos</span>
+                <span className="px-2 py-0.5 rounded-full bg-blue-100 text-[#1B3F93] font-semibold text-[11px]">100% lectura</span>
+              </div>
+            </div>
+
+            {/* KPI 3: Recaudado (verde claro) */}
+            <div className="bg-[#F4F9F5] border border-[#BDE0C7] rounded-xl p-5 shadow-volt-subtle flex flex-col justify-between">
+              <div className="flex items-start justify-between">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-volt-green">Recaudado Efectivo</span>
+                <div className="p-2 rounded-lg bg-volt-green/15 text-volt-green">
+                  <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                </div>
+              </div>
+              <div className="my-2">
+                <span className="text-[28px] leading-[34px] font-bold text-volt-green tabular-nums tracking-tight block">$950,500</span>
+                <span className="text-[12px] font-medium text-volt-ink-mute">COP depositado en tesorería</span>
+              </div>
+              <div className="pt-2 border-t border-[#CCE6D3] flex items-center justify-between text-[12px]">
+                <span className="text-volt-ink-mute">4 unidades al día</span>
+                <span className="px-2 py-0.5 rounded-full bg-volt-green-soft text-volt-green-ink font-bold text-[11px]">64% pagado</span>
+              </div>
+            </div>
+
+            {/* KPI 4: Pendiente (ámbar) */}
+            <div className="bg-[#FDF9F2] border border-[#E9CE99] rounded-xl p-5 shadow-volt-subtle flex flex-col justify-between">
+              <div className="flex items-start justify-between">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-[#995616]">Pendiente por Recaudar</span>
+                <div className="p-2 rounded-lg bg-amber-100 text-[#995616]">
+                  <span className="material-symbols-outlined text-[18px]">pending_actions</span>
+                </div>
+              </div>
+              <div className="my-2">
+                <span className="text-[28px] leading-[34px] font-bold text-[#995616] tabular-nums tracking-tight block">$534,700</span>
+                <span className="text-[12px] font-medium text-volt-ink-mute">COP saldo por liquidar</span>
+              </div>
+              <div className="pt-2 border-t border-[#F1DCB3] flex items-center justify-between text-[12px]">
+                <span className="text-volt-ink-mute">2 unidades pendientes</span>
+                <span className="px-2 py-0.5 rounded-full bg-volt-amber-soft text-volt-amber-deep font-bold text-[11px]">36% saldo</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ============ TABLA LIQUIDACIÓN ============ */}
+          <div className="bg-volt-white border border-volt-rule-soft rounded-2xl shadow-volt-subtle overflow-hidden">
+            {/* Header */}
+            <div className="p-6 border-b border-volt-rule-soft flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h2 className="text-[20px] leading-7 font-semibold text-volt-primary">Liquidación Detallada por Inquilino</h2>
+                  <span className="px-2.5 py-0.5 rounded-full text-[12px] font-semibold bg-volt-surface-low text-volt-primary border border-volt-rule-soft">Ciclo Activo · Octubre 2024</span>
+                </div>
+                <p className="text-[14px] text-volt-ink-mute mt-1">
+                  Tarifa base aplicada: <strong className="text-volt-primary tabular-nums">$750.10 / kWh</strong> + cargo fijo operativo por unidad.
+                </p>
+              </div>
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <button className="px-3.5 py-2 bg-volt-surface-low hover:bg-volt-surface-mid text-volt-ink text-[12px] font-semibold rounded-lg border border-volt-rule-soft flex items-center gap-1.5 transition-colors">
+                  <span className="material-symbols-outlined text-[16px] text-volt-outline">compare_arrows</span>
+                  Comparar Ciclo Ant.
+                </button>
+                <button className="px-3.5 py-2 bg-volt-surface-low hover:bg-volt-surface-mid text-volt-ink text-[12px] font-semibold rounded-lg border border-volt-rule-soft flex items-center gap-1.5 transition-colors">
+                  <span className="material-symbols-outlined text-[16px] text-volt-outline">download</span>
+                  Exportar Resumen
+                </button>
+              </div>
+            </div>
+
+            {/* Filter bar */}
+            <div className="px-6 py-3 bg-volt-surface-low/60 border-b border-volt-rule-soft flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <button className="px-3 py-1 rounded-full text-[12px] font-semibold bg-volt-primary text-volt-white">Todos (6)</button>
+                <button className="px-3 py-1 rounded-full text-[12px] font-semibold bg-volt-white text-volt-ink border border-volt-rule-soft hover:bg-volt-surface-mid flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-volt-green"></span> Pagados (4)
+                </button>
+                <button className="px-3 py-1 rounded-full text-[12px] font-semibold bg-volt-white text-volt-ink border border-volt-rule-soft hover:bg-volt-surface-mid flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#995616]"></span> Pendientes (2)
+                </button>
+              </div>
+              <div className="relative w-full sm:w-64">
+                <span className="material-symbols-outlined absolute left-2.5 top-1.5 text-volt-outline text-[16px]">search</span>
+                <input
+                  className="w-full pl-8 pr-3 py-1 bg-volt-white border border-volt-rule-soft rounded-lg text-[12px] focus:outline-none focus:border-volt-primary"
+                  placeholder="Filtrar por inquilino o medidor..."
+                  type="text"
+                />
+              </div>
+            </div>
+
+            {/* Tabla */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-volt-rule-soft bg-volt-surface-low/40 text-[11px] font-bold text-volt-outline uppercase tracking-wider">
+                    <th className="py-3 px-5">Inmueble / Inquilino</th>
+                    <th className="py-3 px-4">Medidor</th>
+                    <th className="py-3 px-4 text-right">Lect. Ant.</th>
+                    <th className="py-3 px-4 text-right">Lect. Act.</th>
+                    <th className="py-3 px-4 text-right">Consumo</th>
+                    <th className="py-3 px-4 text-right">Cargo Fijo</th>
+                    <th className="py-3 px-5 text-right">Total a Pagar</th>
+                    <th className="py-3 px-4 text-center">Estado</th>
+                    <th className="py-3 px-5 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-volt-rule-soft/60 text-[12px]">
+
+                  {/* ROW 1: Panadería */}
+                  <tr className="hover:bg-volt-surface-low/40 transition-colors">
+                    <td className="py-4 px-5">
+                      <div className="font-semibold text-volt-primary text-[14px]">Local 1 Panadería</div>
+                      <div className="text-volt-ink-mute text-[11px]">Inversiones San Gabriel SAS</div>
+                    </td>
+                    <td className="py-4 px-4 font-mono text-volt-outline">MED-10492</td>
+                    <td className="py-4 px-4 text-right tabular-nums text-volt-ink-mute">14,230</td>
+                    <td className="py-4 px-4 text-right tabular-nums font-medium text-volt-primary">14,750</td>
+                    <td className="py-4 px-4 text-right">
+                      <span className="font-semibold text-volt-primary tabular-nums">520 kWh</span>
+                      <span className="text-[10px] text-volt-ink-mute block">($390,052)</span>
+                    </td>
+                    <td className="py-4 px-4 text-right tabular-nums text-volt-ink-mute">$25,000</td>
+                    <td className="py-4 px-5 text-right">
+                      <div className="font-bold text-[14px] text-volt-primary tabular-nums">$415,052 COP</div>
+                      <div className="text-[10px] text-volt-green font-medium">Recibo #REC-801</div>
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-volt-green/10 text-volt-green border border-volt-green/20 inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-volt-green"></span>
+                        Pagado
+                      </span>
+                    </td>
+                    <td className="py-4 px-5 text-right">
+                      <button className="p-1.5 rounded-lg border border-volt-rule-soft hover:bg-volt-surface-mid text-volt-ink-mute transition-colors" title="Ver Comprobante">
+                        <span className="material-symbols-outlined text-[16px]">receipt</span>
+                      </button>
+                    </td>
+                  </tr>
+
+                  {/* ROW 2: Minimarket (con desglose) */}
+                  <tr className="bg-[#FFFDF9] border-l-4 border-l-[#995616]">
+                    <td className="p-0" colSpan="9">
+                      <div className="p-4 sm:p-5 space-y-3">
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-amber-100 text-[#995616] flex items-center justify-center font-bold shrink-0">2</div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-bold text-volt-primary text-[15px]">Local 2 Minimarket San Juan</span>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-volt-amber-soft text-volt-amber-deep border border-volt-amber/30">
+                                  3 Medidores (2 Monofásicos + 1 Trifásico)
+                                </span>
+                              </div>
+                              <span className="text-volt-ink-mute text-[12px]">Inquilino: Distribuidora San Juan SAS · Resp: Carlos Gómez</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <div className="text-right">
+                              <span className="text-[10px] uppercase font-bold text-[#995616] tracking-wider block">Total Liquidado Pendiente</span>
+                              <span className="font-bold text-[18px] text-volt-primary tabular-nums">$567,571 COP</span>
+                            </div>
+                            <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-amber-100 text-[#995616] border border-amber-300 inline-flex items-center gap-1">
+                              <span className="w-2 h-2 rounded-full bg-[#995616] animate-pulse"></span>
+                              Pendiente
+                            </span>
+                            <div className="flex items-center gap-1.5 pl-2 border-l border-volt-rule-soft">
+                              <button className="px-3 py-1.5 rounded-lg bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#0F6830] font-semibold text-[11px] border border-[#25D366]/40 flex items-center gap-1 transition-colors">
+                                <span className="material-symbols-outlined text-[14px]">chat</span>
+                                Cobrar WhatsApp
+                              </button>
+                              <button className="px-3 py-1.5 rounded-lg bg-volt-primary text-volt-white hover:bg-volt-primary-soft font-medium text-[11px] transition-colors">
+                                Registrar Pago
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Desglose de sub-medidores */}
+                        <div className="bg-volt-white border border-[#E9CE99]/70 rounded-xl p-3.5 space-y-2">
+                          <div className="text-[11px] font-bold uppercase tracking-wider text-volt-outline flex items-center justify-between flex-wrap gap-2">
+                            <span>Desglose por Medidor Independiente</span>
+                            <span className="text-volt-primary font-semibold normal-case tracking-normal">
+                              Consumo consolidado de 3 medidores: 710 kWh (Energía $532,571 + Cargo fijo $35,000)
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1">
+                            {[
+                              { title: 'Medidor 1: Circuito General (Monofásico)', code: 'MED-8812-A · Monofásico', lect: '14,290 → 14,832', kwh: '542 kWh', desc: 'Tomas y servicios' },
+                              { title: 'Medidor 2: Iluminación Comercial (Monofásico)', code: 'MED-8812-C · Monofásico', lect: '2,400 → 2,440', kwh: '40 kWh', desc: 'Aviso y vitrinas' },
+                              { title: 'Medidor 3: Fuerza y Motores (Trifásico)', code: 'MED-8812-B · Trifásico 3F+N', lect: '8,110 → 8,238', kwh: '128 kWh', desc: 'Refrigeración comercial' },
+                            ].map((m, i) => (
+                              <div key={i} className="p-2.5 rounded-lg bg-volt-surface-low border border-volt-rule-soft flex items-center justify-between gap-2">
+                                <div className="min-w-0">
+                                  <span className="text-[12px] font-semibold text-volt-primary block truncate">{m.title}</span>
+                                  <span className="font-mono text-[11px] text-volt-outline">{m.code}</span>
+                                  <span className="text-[10px] text-volt-ink-mute block tabular-nums">Lect: {m.lect}</span>
+                                </div>
+                                <div className="text-right shrink-0">
+                                  <span className="text-[12px] font-bold text-volt-primary tabular-nums">{m.kwh}</span>
+                                  <span className="text-[10px] text-volt-ink-mute block">{m.desc}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+
+                  {/* ROW 3: Boutique */}
+                  <tr className="hover:bg-volt-surface-low/40 transition-colors">
+                    <td className="py-4 px-5">
+                      <div className="font-semibold text-volt-primary text-[14px]">Local 3 Boutique Mariana</div>
+                      <div className="text-volt-ink-mute text-[11px]">Diseño y Moda Textil</div>
+                    </td>
+                    <td className="py-4 px-4 font-mono text-volt-outline">MED-3301</td>
+                    <td className="py-4 px-4 text-right tabular-nums text-volt-ink-mute">5,820</td>
+                    <td className="py-4 px-4 text-right tabular-nums font-medium text-volt-primary">6,010</td>
+                    <td className="py-4 px-4 text-right">
+                      <span className="font-semibold text-volt-primary tabular-nums">190 kWh</span>
+                      <span className="text-[10px] text-volt-ink-mute block">($142,519)</span>
+                    </td>
+                    <td className="py-4 px-4 text-right tabular-nums text-volt-ink-mute">$20,000</td>
+                    <td className="py-4 px-5 text-right">
+                      <div className="font-bold text-[14px] text-volt-primary tabular-nums">$162,519 COP</div>
+                      <div className="text-[10px] text-volt-green font-medium">Recibo #REC-803</div>
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-volt-green/10 text-volt-green border border-volt-green/20 inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-volt-green"></span>
+                        Pagado
+                      </span>
+                    </td>
+                    <td className="py-4 px-5 text-right">
+                      <button className="p-1.5 rounded-lg border border-volt-rule-soft hover:bg-volt-surface-mid text-volt-ink-mute transition-colors">
+                        <span className="material-symbols-outlined text-[16px]">receipt</span>
+                      </button>
+                    </td>
+                  </tr>
+
+                  {/* ROW 4: Apto 201 */}
+                  <tr className="hover:bg-volt-surface-low/40 transition-colors">
+                    <td className="py-4 px-5">
+                      <div className="font-semibold text-volt-primary text-[14px]">Apartamento 201</div>
+                      <div className="text-volt-ink-mute text-[11px]">Residencial · Andrés Felipe Parra</div>
+                    </td>
+                    <td className="py-4 px-4 font-mono text-volt-outline">MED-5521</td>
+                    <td className="py-4 px-4 text-right tabular-nums text-volt-ink-mute">9,140</td>
+                    <td className="py-4 px-4 text-right tabular-nums font-medium text-volt-primary">9,420</td>
+                    <td className="py-4 px-4 text-right">
+                      <span className="font-semibold text-volt-primary tabular-nums">280 kWh</span>
+                      <span className="text-[10px] text-volt-ink-mute block">($210,028)</span>
+                    </td>
+                    <td className="py-4 px-4 text-right tabular-nums text-volt-ink-mute">$15,000</td>
+                    <td className="py-4 px-5 text-right">
+                      <div className="font-bold text-[14px] text-volt-primary tabular-nums">$225,028 COP</div>
+                      <div className="text-[10px] text-volt-green font-medium">Recibo #REC-804</div>
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-volt-green/10 text-volt-green border border-volt-green/20 inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-volt-green"></span>
+                        Pagado
+                      </span>
+                    </td>
+                    <td className="py-4 px-5 text-right">
+                      <button className="p-1.5 rounded-lg border border-volt-rule-soft hover:bg-volt-surface-mid text-volt-ink-mute transition-colors">
+                        <span className="material-symbols-outlined text-[16px]">receipt</span>
+                      </button>
+                    </td>
+                  </tr>
+
+                  {/* ROW 5: Garaje */}
+                  <tr className="hover:bg-volt-surface-low/40 transition-colors">
+                    <td className="py-4 px-5">
+                      <div className="font-semibold text-volt-primary text-[14px]">Garaje / Portón</div>
+                      <div className="text-volt-ink-mute text-[11px]">Copropiedad · Acceso Vehicular y Puertas</div>
+                    </td>
+                    <td className="py-4 px-4 font-mono text-volt-outline">MED-GAR-01</td>
+                    <td className="py-4 px-4 text-right tabular-nums text-volt-ink-mute">1,820</td>
+                    <td className="py-4 px-4 text-right tabular-nums font-medium text-volt-primary">1,960</td>
+                    <td className="py-4 px-4 text-right">
+                      <span className="font-semibold text-volt-primary tabular-nums">140 kWh</span>
+                      <span className="text-[10px] text-volt-ink-mute block">($62,515)</span>
+                    </td>
+                    <td className="py-4 px-4 text-right tabular-nums text-volt-ink-mute">$0</td>
+                    <td className="py-4 px-5 text-right">
+                      <div className="font-bold text-[14px] text-volt-primary tabular-nums">$62,515 COP</div>
+                      <div className="text-[10px] text-volt-outline font-medium">Cargo a Expensas</div>
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-volt-surface-high text-volt-ink-mute border border-volt-rule-soft inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-volt-green"></span>
+                        Conciliado
+                      </span>
+                    </td>
+                    <td className="py-4 px-5 text-right">
+                      <button className="p-1.5 rounded-lg border border-volt-rule-soft hover:bg-volt-surface-mid text-volt-ink-mute transition-colors">
+                        <span className="material-symbols-outlined text-[16px]">receipt</span>
+                      </button>
+                    </td>
+                  </tr>
+
+                  {/* ROW 6: Salón */}
+                  <tr className="hover:bg-volt-surface-low/40 transition-colors">
+                    <td className="py-4 px-5">
+                      <div className="font-semibold text-volt-primary text-[14px]">Salón Comunal</div>
+                      <div className="text-volt-ink-mute text-[11px]">Copropiedad · Iluminación y Eventos</div>
+                    </td>
+                    <td className="py-4 px-4 font-mono text-volt-outline">MED-SAL-01</td>
+                    <td className="py-4 px-4 text-right tabular-nums text-volt-ink-mute">1,300</td>
+                    <td className="py-4 px-4 text-right tabular-nums font-medium text-volt-primary">1,440</td>
+                    <td className="py-4 px-4 text-right">
+                      <span className="font-semibold text-volt-primary tabular-nums">140 kWh</span>
+                      <span className="text-[10px] text-volt-ink-mute block">($62,515)</span>
+                    </td>
+                    <td className="py-4 px-4 text-right tabular-nums text-volt-ink-mute">$0</td>
+                    <td className="py-4 px-5 text-right">
+                      <div className="font-bold text-[14px] text-volt-primary tabular-nums">$62,515 COP</div>
+                      <div className="text-[10px] text-volt-outline font-medium">Cargo a Expensas</div>
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-volt-surface-high text-volt-ink-mute border border-volt-rule-soft inline-flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-volt-green"></span>
+                        Conciliado
+                      </span>
+                    </td>
+                    <td className="py-4 px-5 text-right">
+                      <button className="p-1.5 rounded-lg border border-volt-rule-soft hover:bg-volt-surface-mid text-volt-ink-mute transition-colors">
+                        <span className="material-symbols-outlined text-[16px]">receipt</span>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Totales */}
+            <div className="p-5 bg-volt-surface-low border-t-2 border-volt-primary/20 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-center">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-volt-outline tracking-wider block">Energía Total Medida</span>
+                  <span className="font-bold text-[16px] text-volt-primary tabular-nums">1,980 kWh</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-volt-outline tracking-wider block">Total Liquidado</span>
+                  <span className="font-bold text-[16px] text-volt-primary tabular-nums">$1,485,200 COP</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-volt-green tracking-wider block">Recaudado (Efectivo)</span>
+                  <span className="font-bold text-[16px] text-volt-green tabular-nums">$950,500 COP</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-[#995616] tracking-wider block">Saldo Pendiente</span>
+                  <span className="font-bold text-[16px] text-[#995616] tabular-nums">$534,700 COP</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 flex-wrap">
+                <button className="px-4 py-2 rounded-lg bg-volt-white hover:bg-volt-surface-low text-volt-primary border border-volt-rule-soft font-semibold text-[13px] flex items-center gap-1.5 transition-colors">
+                  <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+                  Descargar Planilla PDF
+                </button>
+                <button className="px-4 py-2 rounded-lg bg-volt-green hover:bg-volt-green-ink text-volt-white font-semibold text-[13px] flex items-center gap-1.5 transition-colors">
+                  <span className="material-symbols-outlined text-[16px]">outgoing_mail</span>
+                  Notificar Pendientes por WhatsApp
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* ============ COBROS PENDIENTES ============ */}
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h2 className="text-[20px] leading-7 font-semibold text-volt-primary tracking-tight">Cobros & Saldos Pendientes</h2>
+                <p className="text-[14px] text-volt-ink-mute mt-0.5">Seguimiento individual de recaudación para el ciclo actual (Octubre 2024)</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] text-volt-outline">Total por recaudar:</span>
+                <span className="text-[16px] font-bold text-[#995616] tabular-nums">$534,700 COP</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                { name: 'Local 2 · Minimarket San Juan', kwh: '710 kWh consumidos (3 medidores)', date: '02 Nov', amount: '$567,571' },
+                { name: 'Apartamento 201', kwh: '280 kWh consumidos', date: '02 Nov', amount: '$225,028' },
+              ].map((item, i) => (
+                <div key={i} className="bg-volt-white border border-volt-rule-soft rounded-2xl p-6 flex flex-col justify-between gap-4 shadow-volt-subtle hover:border-[#E9CE99] transition-colors">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-volt-primary text-[15px]">{item.name}</span>
+                          <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-[#995616] font-semibold border border-amber-300">Pendiente</span>
+                        </div>
+                        <p className="text-[12px] text-volt-ink-mute mt-0.5">{item.kwh} · Facturado el {item.date}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="text-[20px] font-bold text-volt-primary tabular-nums">{item.amount}</div>
+                        <div className="text-[11px] text-volt-outline font-medium">COP</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[12px] text-[#995616] bg-[#FDF9F2] border border-[#F1DCB3] px-3 py-1.5 rounded-lg w-fit">
+                      <span className="material-symbols-outlined text-[14px]">schedule</span>
+                      <span className="font-medium">Vence en 8 días (15 de Noviembre)</span>
+                    </div>
+                  </div>
+                  <div className="pt-3 flex items-center gap-3 border-t border-volt-rule-soft">
+                    <button className="flex-1 inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-volt-primary text-volt-white text-[12px] font-semibold hover:bg-volt-primary-soft transition-colors">
+                      <span className="material-symbols-outlined text-[16px]">payments</span>
+                      Registrar Pago
+                    </button>
+                    <button className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg border border-[#25D366]/40 bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#0F6830] text-[12px] font-semibold transition-colors">
+                      <span className="material-symbols-outlined text-[16px]">chat</span>
+                      Recordatorio WhatsApp
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ============ ACCIONES & PRORRATEO ============ */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Acciones de Emisión */}
+            <div className="lg:col-span-7 bg-volt-white border border-volt-rule-soft rounded-2xl p-6 space-y-4 shadow-volt-subtle">
+              <div>
+                <h3 className="text-[15px] font-bold text-volt-primary">Acciones de Emisión & Reportes</h3>
+                <p className="text-[12px] text-volt-ink-mute mt-0.5">Genera y comparte cuentas de cobro directamente con los inquilinos</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <button className="p-3.5 rounded-xl border border-volt-rule-soft bg-volt-surface-low hover:bg-volt-surface-mid transition-colors text-left flex flex-col justify-between gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-volt-surface-mid border border-volt-rule-soft flex items-center justify-center text-volt-primary">
+                    <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                  </div>
+                  <div>
+                    <div className="text-[12px] font-bold text-volt-primary leading-snug">Descargar Resumen PDF</div>
+                    <div className="text-[11px] text-volt-ink-mute mt-0.5">Reporte contable general del período</div>
+                  </div>
+                </button>
+                <button className="p-3.5 rounded-xl border border-[#25D366]/40 bg-[#F2F8F4] hover:bg-[#E5F3E8] transition-colors text-left flex flex-col justify-between gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-volt-green/15 flex items-center justify-center text-volt-green">
+                    <span className="material-symbols-outlined text-[18px]">send</span>
+                  </div>
+                  <div>
+                    <div className="text-[12px] font-bold text-volt-primary leading-snug">Enviar por WhatsApp</div>
+                    <div className="text-[11px] text-volt-ink-mute mt-0.5">Notificar saldos pendientes de cobro</div>
+                  </div>
+                </button>
+                <button className="p-3.5 rounded-xl border border-volt-rule-soft bg-volt-surface-low hover:bg-volt-surface-mid transition-colors text-left flex flex-col justify-between gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-volt-surface-mid border border-volt-rule-soft flex items-center justify-center text-volt-primary">
+                    <span className="material-symbols-outlined text-[18px]">photo_camera</span>
+                  </div>
+                  <div>
+                    <div className="text-[12px] font-bold text-volt-primary leading-snug">Lectura con Cámara</div>
+                    <div className="text-[11px] text-volt-ink-mute mt-0.5">Captura rápida mensual de medidores</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Criterio de Prorrateo */}
+            <div className="lg:col-span-5 bg-volt-surface-low border border-volt-rule-soft rounded-2xl p-6 flex flex-col justify-between gap-3 shadow-volt-subtle">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-volt-green text-[16px]">balance</span>
+                  <span className="font-bold text-volt-primary text-[14px]">Criterio de Prorrateo & Reglas</span>
+                </div>
+                <p className="text-[12px] text-volt-ink-mute leading-relaxed">
+                  El Salón Comunal ($62,515 COP) y el Garaje/Portón ($62,515 COP) se concilian directamente como expensas comunes del inmueble ($125,030 COP). El valor del kWh ($750.10 COP) y cargos fijos se aplican de forma proporcional y transparente según la lectura individual de cada medidor.
+                </p>
+              </div>
+              <div className="pt-2 border-t border-volt-rule-soft flex items-center justify-between text-[11px] text-volt-outline flex-wrap gap-2">
+                <span>Normativa RETIE · Resolución CREG</span>
+                <a className="text-volt-green font-semibold hover:underline flex items-center gap-1 cursor-pointer">
+                  <span>Configurar tarifas</span>
+                  <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <footer className="pt-2 pb-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-volt-ink-mute border-t border-volt-rule-soft gap-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-volt-green"></span>
+              <span>Servidor de Medición Remota Conectado · Sincronizado hace 14 minutos</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <span>VoltAdmin v3.8.4 Enterprise</span>
+              <span>Soporte Inmueble Los Cedros PH</span>
+            </div>
+          </footer>
         </div>
       )}
 
