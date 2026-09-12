@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
@@ -148,6 +150,106 @@
   --font-headline-lg-mobile: "Geist", "Inter", sans-serif;
   --font-label-md: "Geist", "Inter", sans-serif;
   --font-label-sm: "Geist", "Inter", sans-serif;
+    /* ===== DISEÑO NUEVO — Tokens del dashboard ===== */
+  --color-bg: #C9CDD3;
+  --color-panel: #D6D9DE;
+  --color-ink: #1B1F24;
+  --color-ink-muted: #656C76;
+  --color-navy: #21384A;
+  --color-navy-ink: #F3F4F5;
+  --color-bronze: #8E6E36;
+  --color-rule: rgba(27, 31, 36, 0.15);
+  --color-rule-soft: rgba(27, 31, 36, 0.08);
+  --color-ok: #3D6B4C;
+  --color-ok-bg: rgba(61, 107, 76, 0.12);
+  --color-alert: #9C3B2E;
+  --color-alert-bg: rgba(156, 59, 46, 0.12);
+
+  --font-serif: "Source Serif 4", serif;
+
+  --text-hero: 64px;
+  --text-hero--line-height: 1;
+
+  --shadow-sidebar: 2px 0 14px rgba(0, 0, 0, 0.18);
+  --shadow-button: 0 1px 2px rgba(27, 31, 36, 0.15);
+
+  --tracking-tightish: -0.02em;
+
+    /* ============================================
+     DISEÑO NUEVO "VOLT" — Tokens del layout claro
+     ============================================ */
+  --color-volt-bg: #fbf9f5;
+  --color-volt-white: #ffffff;
+  --color-volt-surface-low: #f5f3ef;
+  --color-volt-surface-mid: #efeeea;
+  --color-volt-surface-high: #eae8e4;
+  --color-volt-surface-highest: #e4e2de;
+  --color-volt-ink: #1b1c1a;
+  --color-volt-ink-mute: #484740;
+  --color-volt-outline: #79776f;
+  --color-volt-outline-soft: #cac6bd;
+  --color-volt-primary: #151513;
+  --color-volt-primary-soft: #2a2927;
+  --color-volt-on-primary: #ffffff;
+  --color-volt-green: #296b3c;
+  --color-volt-green-soft: #adf3b8;
+  --color-volt-green-ink: #307142;
+  --color-volt-amber: #cd7e2e;
+  --color-volt-amber-soft: #ffdcc1;
+  --color-volt-amber-deep: #422100;
+  --color-volt-error: #ba1a1a;
+  --color-volt-error-soft: #ffdad6;
+  --color-volt-error-ink: #93000a;
+  --color-volt-inverse: #30312e;
+  --color-volt-inverse-ink: #f2f0ed;
+  --color-volt-rule: rgba(27, 28, 26, 0.12);
+  --color-volt-rule-soft: rgba(27, 28, 26, 0.06);
+
+  --font-volt: "Plus Jakarta Sans", -apple-system, sans-serif;
+
+  --text-volt-label-sm: 11px;
+  --text-volt-label-sm--line-height: 14px;
+  --text-volt-label-sm--letter-spacing: 0.03em;
+  --text-volt-label-sm--font-weight: 600;
+
+  --text-volt-label-md: 13px;
+  --text-volt-label-md--line-height: 18px;
+  --text-volt-label-md--letter-spacing: 0.01em;
+  --text-volt-label-md--font-weight: 500;
+
+  --text-volt-body-md: 14px;
+  --text-volt-body-md--line-height: 22px;
+
+  --text-volt-body-lg: 16px;
+  --text-volt-body-lg--line-height: 26px;
+
+  --text-volt-title-md: 17px;
+  --text-volt-title-md--line-height: 24px;
+  --text-volt-title-md--letter-spacing: -0.005em;
+  --text-volt-title-md--font-weight: 500;
+
+  --text-volt-headline-sm: 20px;
+  --text-volt-headline-sm--line-height: 28px;
+  --text-volt-headline-sm--letter-spacing: -0.01em;
+  --text-volt-headline-sm--font-weight: 600;
+
+  --text-volt-headline-md: 24px;
+  --text-volt-headline-md--line-height: 32px;
+  --text-volt-headline-md--letter-spacing: -0.015em;
+  --text-volt-headline-md--font-weight: 600;
+
+  --text-volt-headline-lg: 32px;
+  --text-volt-headline-lg--line-height: 40px;
+  --text-volt-headline-lg--letter-spacing: -0.02em;
+  --text-volt-headline-lg--font-weight: 600;
+
+  --text-volt-number-stat: 28px;
+  --text-volt-number-stat--line-height: 34px;
+  --text-volt-number-stat--letter-spacing: -0.02em;
+  --text-volt-number-stat--font-weight: 600;
+
+  --shadow-volt-subtle: 0 2px 10px rgba(44, 40, 35, 0.03), 0 1px 3px rgba(44, 40, 35, 0.02);
+  
 }
 
 @layer base {
@@ -228,6 +330,84 @@
   }
   .btn-primary:active {
     transform: translateY(0);
+  }
+    /* ===== DISEÑO NUEVO — Componentes del dashboard ===== */
+  .hero-figure {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    font-size: var(--text-hero);
+    line-height: 1;
+    color: var(--color-ink-muted);
+    border-left: 2px solid var(--color-bronze);
+    padding-left: 16px;
+    letter-spacing: -0.02em;
+  }
+  .hero-currency {
+    font-size: 0.5em;
+    font-weight: 400;
+    margin-right: 4px;
+    vertical-align: baseline;
+  }
+  .delta-positive {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-bronze);
+  }
+  .stat-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--color-rule-soft);
+  }
+  .stat-row-alert {
+    border-bottom-color: rgba(156, 59, 46, 0.25);
+  }
+  .stat-num {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    font-size: 25px;
+    color: var(--color-ink-muted);
+  }
+  .stat-num-alert {
+    color: var(--color-alert);
+  }
+  .table-activity th {
+    text-align: left;
+    font-weight: 500;
+    color: var(--color-ink-muted);
+    font-size: 11px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--color-rule);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .table-activity td {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--color-rule-soft);
+    color: var(--color-ink);
+    font-size: 13px;
+  }
+  .pill-ok {
+    display: inline-block;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    background: var(--color-ok-bg);
+    color: var(--color-ok);
+  }
+  .pill-late {
+    display: inline-block;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    background: var(--color-alert-bg);
+    color: var(--color-alert);
   }
 }
 
@@ -487,4 +667,23 @@
   .card { padding: 12px; }
   .btn { padding: 7px 10px; }
   .container { padding: 14px 12px; }
+}
+@keyframes slideIn {
+  from { transform: translateX(-100%); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+.animate-slideIn {
+  animation: slideIn 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Volt design helpers */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #E7E3DA;
+  border-radius: 9999px;
 }
